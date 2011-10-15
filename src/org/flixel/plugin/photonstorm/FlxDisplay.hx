@@ -1,14 +1,14 @@
 /**
-* FlxDisplay
-* -- Part of the Flixel Power Tools set
-* 
-* v1.3 Added "screenWrap", "alphaMask" and "alphaMaskFlxSprite" methods
-* v1.2 Added "space" method
-* v1.1 Updated for the Flixel 2.5 Plugin system
-* 
-* @version 1.3 - June 15th 2011
-* @link http://www.photonstorm.com
-* @author Richard Davey / Photon Storm
+ * FlxDisplay
+ * -- Part of the Flixel Power Tools set
+ * 
+ * v1.3 Added "screenWrap", "alphaMask" and "alphaMaskFlxSprite" methods
+ * v1.2 Added "space" method
+ * v1.1 Updated for the Flixel 2.5 Plugin system
+ * 
+ * @version 1.3 - June 15th 2011
+ * @link http://www.photonstorm.com
+ * @author Richard Davey / Photon Storm
 */
 
 package org.flixel.plugin.photonstorm;
@@ -57,7 +57,7 @@ class FlxDisplay
 	{
 		var data:BitmapData = Type.createInstance(source, []).bitmapData;
 		
-		data.copyChannel(Type.createInstance(source, []).bitmapData, new Rectangle(0, 0, data.width, data.height), new Point(), BitmapDataChannel.ALPHA, BitmapDataChannel.ALPHA);
+		data.copyChannel(Type.createInstance(mask, []).bitmapData, new Rectangle(0, 0, data.width, data.height), new Point(), BitmapDataChannel.ALPHA, BitmapDataChannel.ALPHA);
 		
 		output.pixels = data;
 		
@@ -140,7 +140,7 @@ class FlxDisplay
 		var prevWidth:Int = 0;
 		var prevHeight:Int = 0;
 		
-		for (i in 0...sprites.length)
+		for (i in 0...(sprites.length))
 		{
 			var sprite:FlxSprite = sprites[i];
 			

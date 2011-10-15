@@ -1,15 +1,15 @@
 /**
-* FlxBitmapFont
-* -- Part of the Flixel Power Tools set
-* 
-* v1.4 Changed width/height to characterWidth/Height to avoid confusion and added setFixedWidth
-* v1.3 Exposed character width / height values
-* v1.2 Updated for the Flixel 2.5 Plugin system
-* 
-* @version 1.4 - June 21st 2011
-* @link http://www.photonstorm.com
-* @author Richard Davey / Photon Storm
-* @see Requires FlxMath
+ * FlxBitmapFont
+ * -- Part of the Flixel Power Tools set
+ * 
+ * v1.4 Changed width/height to characterWidth/Height to avoid confusion and added setFixedWidth
+ * v1.3 Exposed character width / height values
+ * v1.2 Updated for the Flixel 2.5 Plugin system
+ * 
+ * @version 1.4 - June 21st 2011
+ * @link http://www.photonstorm.com
+ * @author Richard Davey / Photon Storm
+ * @see Requires FlxMath
 */
 
 package org.flixel.plugin.photonstorm;
@@ -204,7 +204,7 @@ class FlxBitmapFont extends FlxSprite
 		var r:Int = 0;
 		#end
 		
-		for (c in 0...chars.length)
+		for (c in 0...(chars.length))
 		{
 			//	The rect is hooked to the ASCII value of the character
 			grabData[chars.charCodeAt(c)] = new Rectangle(currentX, currentY, characterWidth, characterHeight);
@@ -335,7 +335,7 @@ class FlxBitmapFont extends FlxSprite
 			}
 			
 			//	Loop through each line of text
-			for (i in 0...lines.length)
+			for (i in 0...(lines.length))
 			{
 				//	This line of text is held in lines[i] - need to work out the alignment
 				switch (align)
@@ -451,7 +451,7 @@ class FlxBitmapFont extends FlxSprite
 	private function pasteLine(output:BitmapData, line:String, ?x:UInt = 0, ?y:UInt = 0, ?customSpacingX:UInt = 0):Void
 	#end
 	{
-		for (c in 0...line.length)
+		for (c in 0...(line.length))
 		{
 			//	If it's a space then there is no point copying, so leave a blank space
 			if (line.charAt(c) == " ")
@@ -494,7 +494,7 @@ class FlxBitmapFont extends FlxSprite
 		{
 			var lines:Array<String> = _text.split("\n");
 			
-			for (i in 0...lines.length)
+			for (i in 0...(lines.length))
 			{
 				if (lines[i].length > Std.int(longestLine))
 				{
@@ -517,7 +517,7 @@ class FlxBitmapFont extends FlxSprite
 	{
 		var newString:String = "";
 		
-		for (c in 0..._text.length)
+		for (c in 0...(_text.length))
 		{
 			if (grabData[_text.charCodeAt(c)] != null || _text.charCodeAt(c) == 32 || (stripCR == false && _text.charAt(c) == "\n"))
 			{

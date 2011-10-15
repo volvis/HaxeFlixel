@@ -103,7 +103,7 @@ class FlxGradient
 		var result:Array<Int> = new Array();
 		#end
 		
-		for (y in 0...data.height)
+		for (y in 0...(data.height))
 		{
 			result.push(data.getPixel32(0, y));
 		}

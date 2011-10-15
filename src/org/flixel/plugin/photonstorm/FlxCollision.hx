@@ -1,15 +1,16 @@
 /**
-* FlxCollision
-* -- Part of the Flixel Power Tools set
-* 
-* v1.5 Added createCameraWall
-* v1.4 Added pixelPerfectPointCheck()
-* v1.3 Update fixes bug where it wouldn't accurately perform collision on AutoBuffered rotated sprites, or sprites with offsets
-* v1.2 Updated for the Flixel 2.5 Plugin system
-* 
-* @version 1.5 - July 27th 2011
-* @link http://www.photonstorm.com
-* @author Richard Davey / Photon Storm
+ * FlxCollision
+ * -- Part of the Flixel Power Tools set
+ * 
+ * v1.6 Fixed bug in pixelPerfectCheck that stopped non-square rotated objects from colliding properly (thanks to joon on the flixel forums for spotting)
+ * v1.5 Added createCameraWall
+ * v1.4 Added pixelPerfectPointCheck()
+ * v1.3 Update fixes bug where it wouldn't accurately perform collision on AutoBuffered rotated sprites, or sprites with offsets
+ * v1.2 Updated for the Flixel 2.5 Plugin system
+ * 
+ * @version 1.6 - October 8th 2011
+ * @link http://www.photonstorm.com
+ * @author Richard Davey / Photon Storm
 */
 
 package org.flixel.plugin.photonstorm;
@@ -46,20 +47,41 @@ class FlxCollision
 	}
 	
 	/**
-	 * A Pixel Perfect Collision check between two FlxSprites.<br />
-	 * It will do a bounds check first, and if that passes it will run a pixel perfect match on the intersecting area.<br />
-	 * Works with rotated, scaled and animated sprites.<br /><br />
+	 * A Pixel Perfect Collision check between two FlxSprites.
+	 * It will do a bounds check first, and if that passes it will run a pixel perfect match on the intersecting area.
+	 * Works with rotated, scaled and animated sprites.
 	 * 
 	 * @param	contact			The first FlxSprite to test against
 	 * @param	target			The second FlxSprite to test again, sprite order is irrelevant
 	 * @param	alphaTolerance	The tolerance value above which alpha pixels are included. Default to 255 (must be fully opaque for collision).
+	 * @param	camera			If the collision is taking place in a camera other than FlxG.camera (the default/current) then pass it here
 	 * 
 	 * @return	Boolean True if the sprites collide, false if not
 	 */
-	public static function pixelPerfectCheck(contact:FlxSprite, target:FlxSprite, ?alphaTolerance:Int = 255):Bool
+	public static function pixelPerfectCheck(contact:FlxSprite, target:FlxSprite, ?alphaTolerance:Int = 255, ?camera:FlxCamera = null):Bool
 	{
-		var boundsA:Rectangle = new Rectangle(contact.x, contact.y, contact.width, contact.height);
-		var boundsB:Rectangle = new Rectangle(target.x, target.y, target.width, target.height);
+		var pointA:Point = new Point();
+		var pointB:Point = new Point();
+		
+		if (camera != null)
+		{
+			pointA.x = contact.x - Std.int(camera.scroll.x * contact.scrollFactor.x) - contact.offset.x;
+			pointA.y = contact.y - Std.int(camera.scroll.y * contact.scrollFactor.y) - contact.offset.y;
+			
+			pointB.x = target.x - Std.int(camera.scroll.x * target.scrollFactor.x) - target.offset.x;
+			pointB.y = target.y - Std.int(camera.scroll.y * target.scrollFactor.y) - target.offset.y;
+		}
+		else
+		{
+			pointA.x = contact.x - Std.int(FlxG.camera.scroll.x * contact.scrollFactor.x) - contact.offset.x;
+			pointA.y = contact.y - Std.int(FlxG.camera.scroll.y * contact.scrollFactor.y) - contact.offset.y;
+			
+			pointB.x = target.x - Std.int(FlxG.camera.scroll.x * target.scrollFactor.x) - target.offset.x;
+			pointB.y = target.y - Std.int(FlxG.camera.scroll.y * target.scrollFactor.y) - target.offset.y;
+		}
+		
+		var boundsA:Rectangle = new Rectangle(pointA.x, pointA.y, contact.framePixels.width, contact.framePixels.height);
+		var boundsB:Rectangle = new Rectangle(pointB.x, pointB.y, target.framePixels.width, target.framePixels.height);
 		
 		var intersect:Rectangle = boundsA.intersection(boundsB);
 		
@@ -82,14 +104,14 @@ class FlxCollision
 		//	Thanks to Chris Underwood for helping with the translate logic :)
 		
 		var matrixA:Matrix = new Matrix();
-		matrixA.translate(-((intersect.x - boundsA.x) + contact.offset.x), -((intersect.y - boundsA.y) + contact.offset.y));
+		matrixA.translate(-(intersect.x - boundsA.x), -(intersect.y - boundsA.y));
 		
 		var matrixB:Matrix = new Matrix();
-		matrixB.translate(-((intersect.x - boundsB.x) + target.offset.x), -((intersect.y - boundsB.y) + target.offset.y));
+		matrixB.translate(-(intersect.x - boundsB.x), -(intersect.y - boundsB.y));
 		
 		var testA:BitmapData = contact.framePixels;
 		var testB:BitmapData = target.framePixels;
-		var overlapArea:BitmapData = new BitmapData(Math.floor(intersect.width), Math.floor(intersect.height), false);
+		var overlapArea:BitmapData = new BitmapData(Std.int(intersect.width), Std.int(intersect.height), false);
 		
 		overlapArea.draw(testA, matrixA, new ColorTransform(1, 1, 1, 1, 255, -255, -255, alphaTolerance), BlendMode.NORMAL);
 		overlapArea.draw(testB, matrixB, new ColorTransform(1, 1, 1, 1, 255, 255, 255, alphaTolerance), BlendMode.DIFFERENCE);

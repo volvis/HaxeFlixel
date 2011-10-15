@@ -1,19 +1,21 @@
 /**
-* FlxButtonPlus
-* -- Part of the Flixel Power Tools set
-* 
-* v1.4 Added scrollFactor to button and swapped to using mouseInFlxRect so buttons in scrolling worlds work
-* v1.3 Updated gradient colour values to include alpha
-* v1.2 Updated for the Flixel 2.5 Plugin system
-* 
-* @version 1.4 - July 28th 2011
-* @link http://www.photonstorm.com
-* @author Richard Davey / Photon Storm
+ * FlxButtonPlus
+ * -- Part of the Flixel Power Tools set
+ * 
+ * v1.5 Added setOnClickCallback
+ * v1.4 Added scrollFactor to button and swapped to using mouseInFlxRect so buttons in scrolling worlds work
+ * v1.3 Updated gradient colour values to include alpha
+ * v1.2 Updated for the Flixel 2.5 Plugin system
+ * 
+ * @version 1.5 - August 3rd 2011
+ * @link http://www.photonstorm.com
+ * @author Richard Davey / Photon Storm
 */
 
 package org.flixel.plugin.photonstorm;
 
 import flash.events.MouseEvent;
+import org.flixel.FlxCamera;
 import org.flixel.FlxG;
 import org.flixel.FlxGroup;
 import org.flixel.FlxSprite;
@@ -428,7 +430,8 @@ class FlxButtonPlus extends FlxGroup
 	{
 		if (exists && visible && active && (_status == PRESSED) && (_onClick != null) && (pauseProof || !FlxG.paused))
 		{
-			_onClick.apply(null, onClickParams);
+			//_onClick.apply(null, onClickParams);
+			Reflect.callMethod(this, Reflect.field(this, "_onClick"), onClickParams);
 		}
 	}
 	
@@ -519,6 +522,16 @@ class FlxButtonPlus extends FlxGroup
 		leaveCallback = callbackFunc;
 		
 		leaveCallbackParams = params;
+	}
+	
+	public function setOnClickCallback(callbackFunc:Dynamic, ?params:Array<Dynamic> = null):Void
+	{
+		_onClick = callbackFunc;
+		
+		if (params != null)
+		{
+			onClickParams = params;
+		}
 	}
 	
 }

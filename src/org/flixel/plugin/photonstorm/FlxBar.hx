@@ -1,16 +1,17 @@
 /**
-* FlxBar
-* -- Part of the Flixel Power Tools set
-* 
-* v1.5 Fixed bug in "get percent" function that allows it to work with any value range
-* v1.4 Added support for min/max callbacks and "kill on min"
-* v1.3 Renamed from FlxHealthBar and made less specific / far more flexible
-* v1.2 Fixed colour values for fill and gradient to include alpha
-* v1.1 Updated for the Flixel 2.5 Plugin system
-* 
-* @version 1.5 - June 6th 2011
-* @link http://www.photonstorm.com
-* @author Richard Davey / Photon Storm
+ * FlxBar
+ * -- Part of the Flixel Power Tools set
+ * 
+ * v1.6 Lots of bug fixes, more documentation, 2 new test cases, ability to set currentValue added
+ * v1.5 Fixed bug in "get percent" function that allows it to work with any value range
+ * v1.4 Added support for min/max callbacks and "kill on min"
+ * v1.3 Renamed from FlxHealthBar and made less specific / far more flexible
+ * v1.2 Fixed colour values for fill and gradient to include alpha
+ * v1.1 Updated for the Flixel 2.5 Plugin system
+ * 
+ * @version 1.6 - October 10th 2011
+ * @link http://www.photonstorm.com
+ * @author Richard Davey / Photon Storm
 */
 
 package org.flixel.plugin.photonstorm;
@@ -54,10 +55,34 @@ class FlxBar extends FlxSprite
 	 */
 	public var positionOffset:FlxPoint;
 	
+	/**
+	 * The minimum value the bar can be (can never be >= max)
+	 */
 	private var min:Float;
+	
+	/**
+	 * The maximum value the bar can be (can never be <= min)
+	 */
 	private var max:Float;
+	
+	/**
+	 * How wide is the range of this bar? (max - min)
+	 */
+	private var range:Float;
+		
+	/**
+	 * What 1% of the bar is equal to in terms of value (range / 100)
+	 */
 	private var pct:Float;
+	
+	/**
+	 * The current value - must always be between min and max
+	 */
 	private var value:Float;
+	
+	/**
+	 * How many pixels = 1% of the bar (barWidth (or height) / 100)
+	 */
 	public var pxPerPercent:Float;
 	
 	private var emptyCallback:Dynamic;
@@ -204,7 +229,7 @@ class FlxBar extends FlxSprite
 			trackParent(offsetX, offsetY);
 		}
 		
-		updateValue();
+		updateValueFromParent();
 		updateBar();
 	}
 	
@@ -281,18 +306,56 @@ class FlxBar extends FlxSprite
 		
 		this.min = min;
 		this.max = max;
-		pct = 100 / (max - min);
+		
+		range = max - min;
+		
+		pct = range / 100;
 		
 		if (fillHorizontal)
 		{
-			pxPerPercent = barWidth / (max - min);
+			pxPerPercent = barWidth / 100;
 		}
 		else
 		{
-			pxPerPercent = barHeight / (max - min);
+			pxPerPercent = barHeight / 100;
 		}
 		
-		//trace("setRange pct:", pct, "pxPerPercent", pxPerPercent);
+		if (!Math.isNaN(value))
+		{
+			if (value > max)
+			{
+				value = max;
+			}
+			
+			if (value < min)
+			{
+				value = min;
+			}
+		}
+		else
+		{
+			value = min;
+		}
+	}
+	
+	public function debug():Void
+	{
+		trace("FlxBar - Min: " + min + " Max: " + max + " Range: " + range + " pct: " + pct + " pxp: " + pxPerPercent + " Value: " + value);
+	}
+	
+	public var stats(getStats, null):Hash<Dynamic>;
+	
+	public function getStats():Hash<Dynamic>
+	{
+		var data = new Hash<Dynamic>();
+		data.set("min", min);
+		data.set("max", max);
+		data.set("range", range);
+		data.set("pct", pct);
+		data.set("pxPerPct", pxPerPercent);
+		data.set("fillH", fillHorizontal);
+		
+		return data;
 	}
 	
 	/**
@@ -450,7 +513,7 @@ class FlxBar extends FlxSprite
 	#if flash
 	public function setFillDirection(direction:UInt):Void
 	#else
-	public function setFillDirection(direction:UInt):Void
+	public function setFillDirection(direction:Int):Void
 	#end
 	{
 		if (direction == FILL_LEFT_TO_RIGHT || direction == FILL_RIGHT_TO_LEFT || direction == FILL_HORIZONTAL_INSIDE_OUT || direction == FILL_HORIZONTAL_OUTSIDE_IN)
@@ -465,10 +528,13 @@ class FlxBar extends FlxSprite
 		}
 	}
 	
-	private function updateValue():Void
+	private function updateValueFromParent():Void
 	{
-		var newValue:Float = Reflect.field(parent, parentVariable);
-		
+		updateValue(Reflect.field(parent, parentVariable));
+	}
+	
+	private function updateValue(newValue:Float):Void
+	{
 		if (newValue > max)
 		{
 			newValue = max;
@@ -483,12 +549,14 @@ class FlxBar extends FlxSprite
 		
 		if (value == min && emptyCallback != null)
 		{
-			emptyCallback.call();
+			//emptyCallback.call();
+			Reflect.callMethod(this, Reflect.field(this, "emptyCallback"), []);
 		}
 		
 		if (value == max && filledCallback != null)
 		{
-			filledCallback.call();
+			//filledCallback.call();
+			Reflect.callMethod(this, Reflect.field(this, "filledCallback"), []);
 		}
 		
 		if (value == min && emptyKill)
@@ -564,7 +632,7 @@ class FlxBar extends FlxSprite
 		{
 			if (Reflect.field(parent, parentVariable) != value)
 			{
-				updateValue();
+				updateValueFromParent();
 				updateBar();
 			}
 			
@@ -576,58 +644,52 @@ class FlxBar extends FlxSprite
 		}
 	}
 	
-	#if flash
-	public var percent(getPercent, setPercent):UInt;
+	public var percent(getPercent, setPercent):Float;
 	
-	public function getPercent():UInt
+	/**
+	 * The percentage of how full the bar is (a value between 0 and 100)
+	 */
+	public function getPercent():Float
 	{
 		if (value > max)
 		{
 			return 100;
 		}
 		
-		return Math.floor(value * pct);
+		return Math.floor((value / range) * 100);
 	}
 	
-	public function setPercent(newPct:UInt):UInt
+	/**
+	 * Sets the percentage of how full the bar is (a value between 0 and 100). This changes FlxBar.currentValue
+	 */
+	public function setPercent(newPct:Float):Float
 	{
 		if (newPct >= 0 && newPct <= 100)
 		{
-			//value = newPct * pct;
-			value = newPct / 100;
-			
-			//trace("value", value);
-			
+			updateValue(pct * newPct);
 			updateBar();
 		}
 		return newPct;
 	}
-	#else
-	public var percent(getPercent, setPercent):Int;
 	
-	public function getPercent():Int
+	public var currentValue(getCurrentValue, setCurrentValue):Float;
+	
+	/**
+	 * Set the current value of the bar (must be between min and max range)
+	 */
+	public function setCurrentValue(newValue:Float):Float
 	{
-		if (value > max)
-		{
-			return 100;
-		}
-		
-		return Math.floor(value * pct);
+		updateValue(newValue);
+		updateBar();
+		return newValue;
 	}
 	
-	public function setPercent(newPct:Int):Int
+	/**
+	 * The current actual value of the bar
+	 */
+	public function getCurrentValue():Float
 	{
-		if (newPct >= 0 && newPct <= 100)
-		{
-			//value = newPct * pct;
-			value = newPct / 100;
-			
-			//trace("value", value);
-			
-			updateBar();
-		}
-		return newPct;
+		return value;
 	}
-	#end
 	
 }

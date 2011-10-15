@@ -1,16 +1,16 @@
 /**
-* FlxExtendedSprite
-* -- Part of the Flixel Power Tools set
-* 
-* v1.4 Added MouseSpring, plugin checks and all the missing documentation
-* v1.3 Added Gravity, Friction and Tolerance support
-* v1.2 Now works fully with FlxMouseControl to be completely clickable and draggable!
-* v1.1 Added "setMouseDrag" and "mouse over" states
-* v1.0 Updated for the Flixel 2.5 Plugin system
-* 
-* @version 1.4 - July 29th 2011
-* @link http://www.photonstorm.com
-* @author Richard Davey / Photon Storm
+ * FlxExtendedSprite
+ * -- Part of the Flixel Power Tools set
+ * 
+ * v1.4 Added MouseSpring, plugin checks and all the missing documentation
+ * v1.3 Added Gravity, Friction and Tolerance support
+ * v1.2 Now works fully with FlxMouseControl to be completely clickable and draggable!
+ * v1.1 Added "setMouseDrag" and "mouse over" states
+ * v1.0 Updated for the Flixel 2.5 Plugin system
+ * 
+ * @version 1.4 - July 29th 2011
+ * @link http://www.photonstorm.com
+ * @author Richard Davey / Photon Storm
 */
 
 package org.flixel.plugin.photonstorm;
@@ -718,7 +718,7 @@ class FlxExtendedSprite extends FlxSprite
 		
 		if (mousePressedCallback != null)
 		{
-			Reflect.callMethod(null, mousePressedCallback, [this, mouseX, mouseY]);
+			Reflect.callMethod(this, Reflect.field(this, "mousePressedCallback"), [this, mouseX, mouseY]);
 			//mousePressedCallback.apply(null, [ this, mouseX, mouseY ] );
 		}
 	}
@@ -748,7 +748,7 @@ class FlxExtendedSprite extends FlxSprite
 		
 		if (mouseReleasedCallback != null)
 		{
-			Reflect.callMethod(null, mousePressedCallback, [this, mouseX, mouseY]);
+			Reflect.callMethod(this, Reflect.field(this, "mouseReleasedCallback"), [this, this.mouseX, this.mouseY]);
 			//mouseReleasedCallback.apply(null, [ this, mouseX, mouseY ] );
 		}
 	}

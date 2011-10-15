@@ -1,14 +1,15 @@
 /**
-* FlxDelay
-* -- Part of the Flixel Power Tools set
-* 
-* v1.3 Added secondsElapsed and secondsRemaining and some more documentation
-* v1.2 Added callback support
-* v1.1 Updated for the Flixel 2.5 Plugin system
-* 
-* @version 1.3 - July27th 2011
-* @link http://www.photonstorm.com
-* @author Richard Davey / Photon Storm
+ * FlxDelay
+ * -- Part of the Flixel Power Tools set
+ * 
+ * v1.4 Modified abort so it no longer runs the stop callback (thanks to Cambrian-Man)
+ * v1.3 Added secondsElapsed and secondsRemaining and some more documentation
+ * v1.2 Added callback support
+ * v1.1 Updated for the Flixel 2.5 Plugin system
+ * 
+ * @version 1.4 - July 31st 2011
+ * @link http://www.photonstorm.com
+ * @author Richard Davey / Photon Storm
 */
 
 package org.flixel.plugin.photonstorm;
@@ -145,19 +146,19 @@ class FlxDelay extends Sprite
 	 */
 	public function abort():Void
 	{
-		stop();
+		stop(false);
 	}
 	
-	private function stop():Void
+	private function stop(?runCallback:Bool = true):Void
 	{
 		removeEventListener(Event.ENTER_FRAME, update);
 		
 		isRunning = false;
 		complete = true;
 		
-		if (callbackFunction != null)
+		if (callbackFunction != null && runCallback == true)
 		{
-			Reflect.callMethod(this, callbackFunction, []);
+			Reflect.callMethod(this, Reflect.field(this, "callbackFunction"), []);
 		}
 		
 	}

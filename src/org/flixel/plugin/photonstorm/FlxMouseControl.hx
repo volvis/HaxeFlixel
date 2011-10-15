@@ -1,22 +1,20 @@
 /**
-* FlxMouseControl
-* -- Part of the Flixel Power Tools set
-* 
-* v1.2 Added Mouse Zone, Mouse Speed and refactored addToStack process
-* v1.1 Moved to a native plugin
-* v1.0 First release
-* 
-* @version 1.2 - July 28th 2011
-* @link http://www.photonstorm.com
-* @author Richard Davey / Photon Storm
+ * FlxMouseControl
+ * -- Part of the Flixel Power Tools set
+ * 
+ * v1.2 Added Mouse Zone, Mouse Speed and refactored addToStack process
+ * v1.1 Moved to a native plugin
+ * v1.0 First release
+ * 
+ * @version 1.2 - July 28th 2011
+ * @link http://www.photonstorm.com
+ * @author Richard Davey / Photon Storm
 */
 
 package org.flixel.plugin.photonstorm;
 import org.flixel.FlxBasic;
 import org.flixel.FlxPoint;
 import org.flixel.FlxRect;
-
-
 
 class FlxMouseControl extends FlxBasic
 {
@@ -98,7 +96,7 @@ class FlxMouseControl extends FlxBasic
 	 */
 	public static function addToStack(item:FlxExtendedSprite):Void
 	{
-		if (Std.is(mouseZone, FlxRect))
+		if (mouseZone != null)
 		{
 			if (FlxMath.pointInFlxRect(Math.floor(FlxG.mouse.x), Math.floor(FlxG.mouse.y), mouseZone) == true)
 			{

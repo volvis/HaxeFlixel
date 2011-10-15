@@ -1,17 +1,19 @@
 /**
-* FlxControlHandler
-* -- Part of the Flixel Power Tools set
-* 
-* v1.6 Thrust and Reverse complete, final few rotation bugs solved. Sounds hooked in for fire, jump, walk and thrust
-* v1.5 Full support for rotation with min/max angle limits
-* v1.4 Fixed bug in runFire causing fireRate to be ignored
-* v1.3 Major refactoring and lots of new enhancements
-* v1.2 First real version deployed to dev
-* v1.1 Updated for the Flixel 2.5 Plugin system
-* 
-* @version 1.6 - June 15th 2011
-* @link http://www.photonstorm.com
-* @author Richard Davey / Photon Storm
+ * FlxControlHandler
+ * -- Part of the Flixel Power Tools set
+ * 
+ * v1.8 Added isPressedUp/Down/Left/Right handlers
+ * v1.7 Modified update function so gravity is applied constantly
+ * v1.6 Thrust and Reverse complete, final few rotation bugs solved. Sounds hooked in for fire, jump, walk and thrust
+ * v1.5 Full support for rotation with min/max angle limits
+ * v1.4 Fixed bug in runFire causing fireRate to be ignored
+ * v1.3 Major refactoring and lots of new enhancements
+ * v1.2 First real version deployed to dev
+ * v1.1 Updated for the Flixel 2.5 Plugin system
+ * 
+ * @version 1.8 - August 16th 2011
+ * @link http://www.photonstorm.com
+ * @author Richard Davey / Photon Storm
 */
 
 package org.flixel.plugin.photonstorm;
@@ -137,6 +139,12 @@ class FlxControlHandler
 	private var walkSound:FlxSound;
 	private var thrustSound:FlxSound;
 	
+	//	Helpers
+	public var isPressedUp:Bool;
+	public var isPressedDown:Bool;
+	public var isPressedLeft:Bool;
+	public var isPressedRight:Bool;
+	
 	/**
 	 * The "Instant" Movement Type means the sprite will move at maximum speed instantly, and will not "accelerate" (or speed-up) before reaching that speed.
 	 */
@@ -208,6 +216,11 @@ class FlxControlHandler
 	 */
 	public function new(source:FlxSprite, movementType:Int, stoppingType:Int, ?updateFacing:Bool = false, ?enableArrowKeys:Bool = true)
 	{
+		isPressedUp = false;
+		isPressedDown = false;
+		isPressedLeft = false;
+		isPressedRight = false;
+		
 		enabled = false;
 		xSpeedAdjust = 0;
 		ySpeedAdjust = 0;
@@ -725,6 +738,7 @@ class FlxControlHandler
 		if (FlxG.keys.pressed(upKey))
 		{
 			move = true;
+			isPressedUp = true;
 			
 			if (yFacing)
 			{
@@ -756,6 +770,7 @@ class FlxControlHandler
 		if (FlxG.keys.pressed(downKey))
 		{
 			move = true;
+			isPressedDown = true;
 			
 			if (yFacing)
 			{
@@ -788,6 +803,7 @@ class FlxControlHandler
 		if (FlxG.keys.pressed(leftKey))
 		{
 			move = true;
+			isPressedLeft = true;
 			
 			if (xFacing)
 			{
@@ -819,6 +835,7 @@ class FlxControlHandler
 		if (FlxG.keys.pressed(rightKey))
 		{
 			move = true;
+			isPressedRight = true;
 			
 			if (xFacing)
 			{
@@ -977,7 +994,8 @@ class FlxControlHandler
 				{
 					lastFiredTime = Lib.getTimer();
 					
-					fireCallback.call();
+					//fireCallback.call();
+					Reflect.callMethod(this, Reflect.field(this, "fireCallback"), []);
 					
 					fired = true;
 					
@@ -988,7 +1006,8 @@ class FlxControlHandler
 			{
 				lastFiredTime = Lib.getTimer();
 				
-				fireCallback.call();
+				//fireCallback.call();
+				Reflect.callMethod(this, Reflect.field(this, "fireCallback"), []);
 				
 				fired = true;
 			}
@@ -1059,7 +1078,8 @@ class FlxControlHandler
 			
 			if (jumpCallback != null)
 			{
-				jumpCallback.call();
+				//jumpCallback.call();
+				Reflect.callMethod(this, Reflect.field(this, "jumpCallback"), []);
 			}
 			
 			lastJumpTime = Lib.getTimer();
@@ -1086,6 +1106,12 @@ class FlxControlHandler
 			return;
 		}
 		
+		//	Reset the helper booleans
+		isPressedUp = false;
+		isPressedDown = false;
+		isPressedLeft = false;
+		isPressedRight = false;
+		
 		if (stopping == STOPPING_INSTANT)
 		{
 			if (movement == MOVEMENT_INSTANT)
@@ -1108,15 +1134,9 @@ class FlxControlHandler
 			}
 			else if (movement == MOVEMENT_ACCELERATES)
 			{
-				if (gravityX == 0)
-				{
-					entity.acceleration.x = 0;
-				}
-				
-				if (gravityY == 0)
-				{
-					entity.acceleration.y = 0;
-				}
+				//	By default these are zero anyway, so it's safe to set like this
+				entity.acceleration.x = gravityX;
+				entity.acceleration.y = gravityY;
 			}
 		}
 		
