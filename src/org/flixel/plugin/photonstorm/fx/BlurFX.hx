@@ -81,7 +81,7 @@ class BlurFX extends BaseFX
 	 */
 	public function removeSprite(source:FlxSprite):Void
 	{
-		for (i in 0...objects.length)
+		for (i in 0...(objects.length))
 		{
 			if (objects[i].sprite == source)
 			{

@@ -14,6 +14,7 @@
 
 package org.flixel.plugin.photonstorm;
 
+import org.flixel.FlxObject;
 import org.flixel.FlxPoint;
 import org.flixel.FlxSprite;
 
@@ -308,6 +309,43 @@ class FlxVelocity
 	}
 	
 	/**
+	 * Given the FlxSprite and speed calculate the velocity and return it as an FlxPoint based on the direction the sprite is facing
+	 * 
+	 * @param	parent	The FlxSprite to get the facing value from
+	 * @param	speed	The speed it will move, in pixels per second sq
+	 * 
+	 * @return	An FlxPoint where FlxPoint.x contains the velocity x value and FlxPoint.y contains the velocity y value
+	 */
+	public static function velocityFromFacing(parent:FlxSprite, speed:Int):FlxPoint
+	{
+		var a:Float = 0;
+		
+		if (parent.facing == FlxObject.LEFT)
+		{
+			a = FlxMath.asRadians(180);
+		}
+		else if (parent.facing == FlxObject.RIGHT)
+		{
+			a = FlxMath.asRadians(0);
+		}
+		else if (parent.facing == FlxObject.UP)
+		{
+			a = FlxMath.asRadians( -90);
+		}
+		else if (parent.facing == FlxObject.DOWN)
+		{
+			a = FlxMath.asRadians(90);
+		}
+		
+		var result:FlxPoint = new FlxPoint();
+		
+		result.x = Std.int(Math.cos(a) * speed);
+		result.y = Std.int(Math.sin(a) * speed);
+		
+		return result;
+	}
+	
+	/**
 	 * Find the angle (in radians) between an FlxSprite and the mouse, taking their x/y and origin into account.
 	 * The angle is calculated in clockwise positive direction (down = 90 degrees positive, right = 0 degrees positive, up = 90 degrees negative)
 	 * 
@@ -334,7 +372,5 @@ class FlxVelocity
 			return Math.atan2(dy, dx);
 		}
 	}
-	
-	
 	
 }

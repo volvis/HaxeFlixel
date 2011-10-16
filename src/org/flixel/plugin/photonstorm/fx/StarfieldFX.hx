@@ -110,7 +110,7 @@ class StarfieldFX extends BaseFX
 		
 		stars = new Array();
 		
-		for (i in 0...quantity)
+		for (i in 0...(quantity))
 		{
 			var star:Dynamic = {};
 			

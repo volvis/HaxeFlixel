@@ -1,13 +1,14 @@
 /**
-* GlitchFX - Special FX Plugin
-* -- Part of the Flixel Power Tools set
-* 
-* v1.1 Added changeGlitchValues support
-* v1.0 First release
-* 
-* @version 1.1 - June 13th 2011
-* @link http://www.photonstorm.com
-* @author Richard Davey / Photon Storm
+ * GlitchFX - Special FX Plugin
+ * -- Part of the Flixel Power Tools set
+ * 
+ * v1.2 Fixed updateFromSource github issue #8 (thanks CoderBrandon)
+ * v1.1 Added changeGlitchValues support
+ * v1.0 First release
+ * 
+ * @version 1.2 - August 8th 2011
+ * @link http://www.photonstorm.com
+ * @author Richard Davey / Photon Storm
 */
 
 package org.flixel.plugin.photonstorm.fx;

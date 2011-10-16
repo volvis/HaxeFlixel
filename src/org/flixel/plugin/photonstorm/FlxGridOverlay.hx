@@ -200,5 +200,4 @@ class FlxGridOverlay
 		return grid;
 	}
 	
-	
 }

@@ -153,7 +153,7 @@ class PlasmaFX extends BaseFX
 			tpos2 &= 511;
 			tpos3 &= 511;
 			
-			for (x in 0...canvas.width)
+			for (x in 0...(canvas.width))
 			{
 				tpos1 &= 511;
 				tpos2 &= 511;

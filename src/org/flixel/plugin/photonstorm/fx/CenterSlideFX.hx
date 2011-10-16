@@ -261,7 +261,8 @@ class CenterSlideFX extends BaseFX
 			
 			if (complete && completeCallback != null)
 			{
-				completeCallback.call();
+				//completeCallback.call();
+				Reflect.callMethod(this, Reflect.field(this, "completeCallback"), []);
 			}
 		}
 	}

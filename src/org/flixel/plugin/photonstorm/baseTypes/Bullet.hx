@@ -1,5 +1,19 @@
+/**
+ * Bullet
+ * -- Part of the Flixel Power Tools set
+ * 
+ * v1.2 Removed "id" and used the FlxSprite ID value instead
+ * v1.1 Updated to support fire callbacks, sounds, random variances and lifespan
+ * v1.0 First release
+ * 
+ * @version 1.2 - October 10th 2011
+ * @link http://www.photonstorm.com
+ * @author Richard Davey / Photon Storm
+*/
+
 package org.flixel.plugin.photonstorm.baseTypes; 
 
+import flash.Lib;
 import org.flixel.FlxPoint;
 import org.flixel.FlxSprite;
 import org.flixel.plugin.photonstorm.FlxMath;
@@ -8,11 +22,6 @@ import org.flixel.plugin.photonstorm.FlxWeapon;
 
 class Bullet extends FlxSprite
 {
-	#if flash
-	public var id:UInt;
-	#else
-	public var id:Int;
-	#end
 	private var weapon:FlxWeapon;
 	
 	private var bulletSpeed:Int;
@@ -21,6 +30,22 @@ class Bullet extends FlxSprite
 	public var accelerates:Bool;
 	public var xAcceleration:Int;
 	public var yAcceleration:Int;
+	
+	#if flash
+	public var rndFactorAngle:UInt;
+	public var rndFactorSpeed:UInt;
+	public var rndFactorLifeSpan:UInt;
+	public var lifespan:UInt;
+	public var launchTime:UInt;
+	public var expiresTime:UInt;
+	#else
+	public var rndFactorAngle:Int;
+	public var rndFactorSpeed:Int;
+	public var rndFactorLifeSpan:Int;
+	public var lifespan:Int;
+	public var launchTime:Int;
+	public var expiresTime:Int;
+	#end
 	
 	private var animated:Bool;
 	
@@ -33,7 +58,7 @@ class Bullet extends FlxSprite
 		super(0, 0);
 		
 		this.weapon = weapon;
-		this.id = id;
+		this.ID = id;
 		
 		//	Safe defaults
 		accelerates = false;
@@ -64,100 +89,80 @@ class Bullet extends FlxSprite
 	
 	public function fire(fromX:Int, fromY:Int, velX:Int, velY:Int):Void
 	{
-		x = fromX;
-		y = fromY;
+		x = fromX + FlxMath.rand( -weapon.rndFactorPosition.x, weapon.rndFactorPosition.x);
+		y = fromY + FlxMath.rand( -weapon.rndFactorPosition.y, weapon.rndFactorPosition.y);
 		
 		if (accelerates)
 		{
-			acceleration.x = xAcceleration;
-			acceleration.y = yAcceleration;
+			acceleration.x = xAcceleration + FlxMath.rand( -weapon.rndFactorSpeed, weapon.rndFactorSpeed);
+			acceleration.y = yAcceleration + FlxMath.rand( -weapon.rndFactorSpeed, weapon.rndFactorSpeed);
 		}
 		else
 		{
-			velocity.x = velX;
-			velocity.y = velY;
+			velocity.x = velX + FlxMath.rand( -weapon.rndFactorSpeed, weapon.rndFactorSpeed);
+			velocity.y = velY + FlxMath.rand( -weapon.rndFactorSpeed, weapon.rndFactorSpeed);
 		}
 		
-		if (animated)
-		{
-			play("fire");
-		}
-		
-		exists = true;
+		postFire();
 	}
 	
 	public function fireAtMouse(fromX:Int, fromY:Int, speed:Int):Void
 	{
-		x = fromX;
-		y = fromY;
+		x = fromX + FlxMath.rand( -weapon.rndFactorPosition.x, weapon.rndFactorPosition.x);
+		y = fromY + FlxMath.rand( -weapon.rndFactorPosition.y, weapon.rndFactorPosition.y);
 		
 		if (accelerates)
 		{
-			FlxVelocity.accelerateTowardsMouse(this, speed, Math.floor(maxVelocity.x), Math.floor(maxVelocity.y));
+			FlxVelocity.accelerateTowardsMouse(this, speed + FlxMath.rand( -weapon.rndFactorSpeed, weapon.rndFactorSpeed), Math.floor(maxVelocity.x), Math.floor(maxVelocity.y));
 		}
 		else
 		{
-			FlxVelocity.moveTowardsMouse(this, speed);
+			FlxVelocity.moveTowardsMouse(this, speed + FlxMath.rand( -weapon.rndFactorSpeed, weapon.rndFactorSpeed));
 		}
 		
-		if (animated)
-		{
-			play("fire");
-		}
-		
-		exists = true;
+		postFire();
 	}
 	
 	public function fireAtPosition(fromX:Int, fromY:Int, toX:Int, toY:Int, speed:Int):Void
 	{
-		x = fromX;
-		y = fromY;
+		x = fromX + FlxMath.rand( -weapon.rndFactorPosition.x, weapon.rndFactorPosition.x);
+		y = fromY + FlxMath.rand( -weapon.rndFactorPosition.y, weapon.rndFactorPosition.y);
 		
 		if (accelerates)
 		{
-			FlxVelocity.accelerateTowardsPoint(this, new FlxPoint(toX, toY), speed, Math.floor(maxVelocity.x), Math.floor(maxVelocity.y));
+			FlxVelocity.accelerateTowardsPoint(this, new FlxPoint(toX, toY), speed + FlxMath.rand( -weapon.rndFactorSpeed, weapon.rndFactorSpeed), Math.floor(maxVelocity.x), Math.floor(maxVelocity.y));
 		}
 		else
 		{
-			FlxVelocity.moveTowardsPoint(this, new FlxPoint(toX, toY), speed);
+			FlxVelocity.moveTowardsPoint(this, new FlxPoint(toX, toY), speed + FlxMath.rand( -weapon.rndFactorSpeed, weapon.rndFactorSpeed));
 		}
 		
-		if (animated)
-		{
-			play("fire");
-		}
-		
-		exists = true;
+		postFire();
 	}
 	
 	public function fireAtTarget(fromX:Int, fromY:Int, target:FlxSprite, speed:Int):Void
 	{
-		x = fromX;
-		y = fromY;
+		x = fromX + FlxMath.rand( -weapon.rndFactorPosition.x, weapon.rndFactorPosition.x);
+		y = fromY + FlxMath.rand( -weapon.rndFactorPosition.y, weapon.rndFactorPosition.y);
 		
 		if (accelerates)
 		{
-			FlxVelocity.accelerateTowardsObject(this, target, speed, Math.floor(maxVelocity.x), Math.floor(maxVelocity.y));
+			FlxVelocity.accelerateTowardsObject(this, target, speed + FlxMath.rand( -weapon.rndFactorSpeed, weapon.rndFactorSpeed), Math.floor(maxVelocity.x), Math.floor(maxVelocity.y));
 		}
 		else
 		{
-			FlxVelocity.moveTowardsObject(this, target, speed);
+			FlxVelocity.moveTowardsObject(this, target, speed + FlxMath.rand( -weapon.rndFactorSpeed, weapon.rndFactorSpeed));
 		}
 		
-		if (animated)
-		{
-			play("fire");
-		}
-		
-		exists = true;
+		postFire();
 	}
 	
 	public function fireFromAngle(fromX:Int, fromY:Int, fireAngle:Int, speed:Int):Void
 	{
-		x = fromX;
-		y = fromY;
+		x = fromX + FlxMath.rand( -weapon.rndFactorPosition.x, weapon.rndFactorPosition.x);
+		y = fromY + FlxMath.rand( -weapon.rndFactorPosition.y, weapon.rndFactorPosition.y);
 		
-		var newVelocity:FlxPoint = FlxVelocity.velocityFromAngle(fireAngle, speed);
+		var newVelocity:FlxPoint = FlxVelocity.velocityFromAngle(fireAngle + FlxMath.rand( -weapon.rndFactorAngle, weapon.rndFactorAngle), speed + FlxMath.rand( -weapon.rndFactorSpeed, weapon.rndFactorSpeed));
 		
 		if (accelerates)
 		{
@@ -170,12 +175,41 @@ class Bullet extends FlxSprite
 			velocity.y = newVelocity.y;
 		}
 		
+		postFire();
+	}
+	
+	private function postFire():Void
+	{
 		if (animated)
 		{
 			play("fire");
 		}
 		
+		if (weapon.bulletElasticity > 0)
+		{
+			elasticity = weapon.bulletElasticity;
+		}
+		
 		exists = true;
+		
+		launchTime = Lib.getTimer();
+		
+		if (weapon.bulletLifeSpan > 0)
+		{
+			lifespan = weapon.bulletLifeSpan + FlxMath.rand( -weapon.rndFactorLifeSpan, weapon.rndFactorLifeSpan);
+			expiresTime = Lib.getTimer() + lifespan;
+		}
+		
+		if (weapon.onFireCallback != null)
+		{
+			//weapon.onFireCallback.apply();
+			Reflect.callMethod(weapon, Reflect.field(weapon, "onFireCallback"), []);
+		}
+		
+		if (weapon.onFireSound != null)
+		{
+			weapon.onFireSound.play();
+		}
 	}
 	
 	public var xGravity(null, setxGravity):Int;
@@ -212,7 +246,10 @@ class Bullet extends FlxSprite
 	
 	override public function update():Void
 	{
-		super.update();
+		if (lifespan > 0 && Lib.getTimer() > Std.int(expiresTime))
+		{
+			kill();
+		}
 		
 		if (FlxMath.pointInFlxRect(Math.floor(x), Math.floor(y), weapon.bounds) == false)
 		{

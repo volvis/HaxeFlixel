@@ -350,7 +350,7 @@ package org.flixel.plugin.photonstorm.fx;
 					
 					if (waveLoopCallback != null)
 					{
-						Reflect.callMethod(this, waveLoopCallback, []);
+						Reflect.callMethod(this, Reflect.field(this, "waveLoopCallback"), []);
 						//waveLoopCallback.call();
 					}
 				}

@@ -1,12 +1,15 @@
 /**
-* FlxWeapon
-* -- Part of the Flixel Power Tools set
-* 
-* v1.0 First release
-* 
-* @version 1.0 - June 10th 2011
-* @link http://www.photonstorm.com
-* @author Richard Davey / Photon Storm
+ * FlxWeapon
+ * -- Part of the Flixel Power Tools set
+ * 
+ * v1.3 Added bullet elasticity and bulletsFired counter
+ * v1.2 Added useParentDirection boolean
+ * v1.1 Added pre-fire, fire and post-fire callbacks and sound support, rnd factors, boolean returns and currentBullet
+ * v1.0 First release
+ * 
+ * @version 1.3 - October 9th 2011
+ * @link http://www.photonstorm.com
+ * @author Richard Davey / Photon Storm
 */
 
 package org.flixel.plugin.photonstorm;
@@ -29,11 +32,9 @@ import org.flixel.plugin.photonstorm.FlxVelocity;
  * ----
  * 
  * Angled bullets
- * RND factor
  * Baked Rotation support for angled bullets
  * Bullet death styles (particle effects)
  * Bullet trails - blur FX style and Missile Command "draw lines" style? (could be another FX plugin)
- * Assigning sound effects
  * Homing Missiles
  * Bullet uses random sprite from sprite sheet (for rainbow style bullets), or cycles through them in sequence?
  * Some Weapon base classes like shotgun, lazer, etc?
@@ -82,17 +83,46 @@ class FlxWeapon
 	private var parentXVariable:String;
 	private var parentYVariable:String;
 	private var positionOffset:FlxPoint;
+	private var directionFromParent:Bool;
+	private var angleFromParent:Bool;
 	
 	private var velocity:FlxPoint;
 	
+	#if flash
+	public var multiShot:UInt;
+	public var bulletLifeSpan:UInt;
+	#else
+	public var multiShot:Int;
+	public var bulletLifeSpan:Int;
+	#end
+	
+	public var bulletElasticity:Float;
+	
+	#if flash
+	public var rndFactorAngle:UInt;
+	public var rndFactorLifeSpan:UInt;
+	public var rndFactorSpeed:UInt;
+	#else
+	public var rndFactorAngle:Int;
+	public var rndFactorLifeSpan:Int;
+	public var rndFactorSpeed:Int;
+	#end
+	public var rndFactorPosition:FlxPoint;
+	
+	/**
+	 * A reference to the Bullet that was fired
+	 */
+	public var currentBullet:Bullet;
+	
 	//	Callbacks
-	public var onKillCallback:Dynamic;
+	public var onPreFireCallback:Dynamic;
 	public var onFireCallback:Dynamic;
+	public var onPostFireCallback:Dynamic;
 	
 	//	Sounds
-	public var playSounds:Bool;
-	public var onKillSound:FlxSound;
+	public var onPreFireSound:FlxSound;
 	public var onFireSound:FlxSound;
+	public var onPostFireSound:FlxSound;
 	
 	//	Quick firing direction angle constants
 	public static inline var BULLET_UP:Int = -90;
@@ -106,16 +136,19 @@ class FlxWeapon
 	
 	//	TODO :)
 	#if flash
+	/**
+	 * Keeps a tally of how many bullets have been fired by this weapon
+	 */
 	private var bulletsFired:UInt;
 	private var currentMagazine:UInt;
-	private var currentBullet:UInt;
+	//private var currentBullet:UInt;
 	private var magazineCount:UInt;
 	private var bulletsPerMagazine:UInt;
 	private var magazineSwapDelay:UInt;
 	#else
 	private var bulletsFired:Int;
 	private var currentMagazine:Int;
-	private var currentBullet:Int;
+	//private var currentBullet:Int;
 	private var magazineCount:Int;
 	private var bulletsPerMagazine:Int;
 	private var magazineSwapDelay:Int;
@@ -151,6 +184,14 @@ class FlxWeapon
 	 */
 	public function new(name:String, ?parentRef:Dynamic = null, ?xVariable:String = "x", ?yVariable:String = "y")
 	{
+		rndFactorAngle = 0;
+		rndFactorLifeSpan = 0;
+		rndFactorSpeed = 0;
+		rndFactorPosition = new FlxPoint();
+		multiShot = 0;
+		bulletLifeSpan = 0;
+		bulletElasticity = 0;
+		
 		lastFired = 0;
 		nextFire = 0;
 		fireRate = 0;
@@ -187,7 +228,7 @@ class FlxWeapon
 	{
 		group = new FlxGroup(quantity);
 		
-		for (b in 0...quantity)
+		for (b in 0...(quantity))
 		{
 			var tempBullet:Bullet = new Bullet(this, b);
 			
@@ -223,7 +264,7 @@ class FlxWeapon
 		
 		rotateToAngle = autoRotate;
 		
-		for (b in 0...quantity)
+		for (b in 0...(quantity))
 		{
 			var tempBullet:Bullet = new Bullet(this, b);
 			
@@ -264,7 +305,7 @@ class FlxWeapon
 	{
 		group = new FlxGroup(quantity);
 		
-		for (b in 0...quantity)
+		for (b in 0...(quantity))
 		{
 			var tempBullet:Bullet = new Bullet(this, b);
 			
@@ -286,28 +327,40 @@ class FlxWeapon
 	 * @param	x
 	 * @param	y
 	 * @param	target
+	 * @return	true if a bullet was fired or false if one wasn't available. The bullet last fired is stored in FlxWeapon.prevBullet
 	 */
 	#if flash
-	private function runFire(method:UInt, ?x:Int = 0, ?y:Int = 0, ?target:FlxSprite = null, ?angle:Int = 0):Void
+	private function runFire(method:UInt, ?x:Int = 0, ?y:Int = 0, ?target:FlxSprite = null, ?angle:Int = 0):Bool
 	#else
-	private function runFire(method:Int, ?x:Int = 0, ?y:Int = 0, ?target:FlxSprite = null, ?angle:Int = 0):Void
+	private function runFire(method:Int, ?x:Int = 0, ?y:Int = 0, ?target:FlxSprite = null, ?angle:Int = 0):Bool
 	#end
 	{
 		if (fireRate > 0 && (Lib.getTimer() < Math.floor(nextFire)))
 		{
-			return;
+			return false;
 		}
 		
-		var bullet:Bullet = getFreeBullet();
+		currentBullet = getFreeBullet();
 		
-		if (bullet == null)
+		if (currentBullet == null)
 		{
-			return;
+			return false;
+		}
+		
+		if (onPreFireCallback != null)
+		{
+			//onPreFireCallback.apply();
+			Reflect.callMethod(this, Reflect.field(this, "onPreFireCallback"), []);
+		}
+		
+		if (onPreFireSound != null)
+		{
+			onPreFireSound.play();
 		}
 
 		//	Clear any velocity that may have been previously set from the pool
-		bullet.velocity.x = 0;
-		bullet.velocity.y = 0;
+		currentBullet.velocity.x = 0;
+		currentBullet.velocity.y = 0;
 		
 		lastFired = Lib.getTimer();
 		nextFire = Lib.getTimer() + fireRate;
@@ -326,47 +379,71 @@ class FlxWeapon
 			launchY += fireY;
 		}
 		
+		if (directionFromParent)
+		{
+			velocity = FlxVelocity.velocityFromFacing(parent, bulletSpeed);
+		}
+		
 		//	Faster (less CPU) to use this small if-else ladder than a switch statement
 		if (method == FIRE)
 		{
-			bullet.fire(launchX, launchY, Math.floor(velocity.x), Math.floor(velocity.y));
+			currentBullet.fire(launchX, launchY, Math.floor(velocity.x), Math.floor(velocity.y));
 		}
 		else if (method == FIRE_AT_MOUSE)
 		{
-			bullet.fireAtMouse(launchX, launchY, bulletSpeed);
+			currentBullet.fireAtMouse(launchX, launchY, bulletSpeed);
 		}
 		else if (method == FIRE_AT_POSITION)
 		{
-			bullet.fireAtPosition(launchX, launchY, x, y, bulletSpeed);
+			currentBullet.fireAtPosition(launchX, launchY, x, y, bulletSpeed);
 		}
 		else if (method == FIRE_AT_TARGET)
 		{
-			bullet.fireAtTarget(launchX, launchY, target, bulletSpeed);
+			currentBullet.fireAtTarget(launchX, launchY, target, bulletSpeed);
 		}
 		else if (method == FIRE_FROM_ANGLE)
 		{
-			bullet.fireFromAngle(launchX, launchY, angle, bulletSpeed);
+			currentBullet.fireFromAngle(launchX, launchY, angle, bulletSpeed);
 		}
 		else if (method == FIRE_FROM_PARENT_ANGLE)
 		{
-			bullet.fireFromAngle(launchX, launchY, parent.angle, bulletSpeed);
+			currentBullet.fireFromAngle(launchX, launchY, parent.angle, bulletSpeed);
 		}
+		
+		if (onPostFireCallback != null)
+		{
+			//onPostFireCallback.apply();
+			Reflect.callMethod(this, Reflect.field(this, "onPostFireCallback"), []);
+		}
+		
+		if (onPostFireSound != null)
+		{
+			onPostFireSound.play();
+		}
+		
+		bulletsFired++;
+		
+		return true;
 	}
 	
 	/**
 	 * Fires a bullet (if one is available). The bullet will be given the velocity defined in setBulletDirection and fired at the rate set in setFireRate.
+	 * 
+	 * @return	true if a bullet was fired or false if one wasn't available. A reference to the bullet fired is stored in FlxWeapon.currentBullet.
 	 */
-	public function fire():Void
+	public function fire():Bool
 	{
-		runFire(FIRE);
+		return runFire(FIRE);
 	}
 	
 	/**
 	 * Fires a bullet (if one is available) at the mouse coordinates, using the speed set in setBulletSpeed and the rate set in setFireRate.
+	 * 
+	 * @return	true if a bullet was fired or false if one wasn't available. A reference to the bullet fired is stored in FlxWeapon.currentBullet.
 	 */
-	public function fireAtMouse():Void
+	public function fireAtMouse():Bool
 	{
-		runFire(FIRE_AT_MOUSE);
+		return runFire(FIRE_AT_MOUSE);
 	}
 	
 	/**
@@ -374,42 +451,56 @@ class FlxWeapon
 	 * 
 	 * @param	x	The x coordinate (in game world pixels) to fire at
 	 * @param	y	The y coordinate (in game world pixels) to fire at
+	 * @return	true if a bullet was fired or false if one wasn't available. A reference to the bullet fired is stored in FlxWeapon.currentBullet.
 	 */
-	public function fireAtPosition(x:Int, y:Int):Void
+	public function fireAtPosition(x:Int, y:Int):Bool
 	{
-		runFire(FIRE_AT_POSITION, x, y);
+		return runFire(FIRE_AT_POSITION, x, y);
 	}
 	
 	/**
 	 * Fires a bullet (if one is available) at the given targets x/y coordinates, using the speed set in setBulletSpeed and the rate set in setFireRate.
 	 * 
 	 * @param	target	The FlxSprite you wish to fire the bullet at
+	 * @return	true if a bullet was fired or false if one wasn't available. A reference to the bullet fired is stored in FlxWeapon.currentBullet.
 	 */
-	public function fireAtTarget(target:FlxSprite):Void
+	public function fireAtTarget(target:FlxSprite):Bool
 	{
-		runFire(FIRE_AT_TARGET, 0, 0, target);
+		return runFire(FIRE_AT_TARGET, 0, 0, target);
 	}
 	
-	public function fireFromAngle(angle:Int):Void
+	/**
+	 * Fires a bullet (if one is available) based on the given angle
+	 * 
+	 * @param	angle	The angle (in degrees) calculated in clockwise positive direction (down = 90 degrees positive, right = 0 degrees positive, up = 90 degrees negative)
+	 * @return	true if a bullet was fired or false if one wasn't available. A reference to the bullet fired is stored in FlxWeapon.currentBullet.
+	 */
+	public function fireFromAngle(angle:Int):Bool
 	{
-		runFire(FIRE_FROM_ANGLE, 0, 0, null, angle);
+		return runFire(FIRE_FROM_ANGLE, 0, 0, null, angle);
 	}
 	
-	public function fireFromParentAngle():Void
+	/**
+	 * Fires a bullet (if one is available) based on the angle of the Weapons parent
+	 * 
+	 * @return	true if a bullet was fired or false if one wasn't available. A reference to the bullet fired is stored in FlxWeapon.currentBullet.
+	 */
+	public function fireFromParentAngle():Bool
 	{
-		runFire(FIRE_FROM_PARENT_ANGLE);
+		return runFire(FIRE_FROM_PARENT_ANGLE);
 	}
 	
 	/**
 	 * Causes the Weapon to fire from the parents x/y value, as seen in Space Invaders and most shoot-em-ups.
 	 * 
-	 * @param	parentRef	If this weapon belongs to a parent sprite, specify it here (bullets will fire from the sprites x/y vars as defined below).
-	 * @param	xVariable	The x axis variable of the parent to use when firing. Typically "x", but could be "screenX" or any public getter that exposes the x coordinate.
-	 * @param	yVariable	The y axis variable of the parent to use when firing. Typically "y", but could be "screenY" or any public getter that exposes the y coordinate.
-	 * @param	offsetX		When the bullet is fired if you need to offset it on the x axis, for example to line it up with the "nose" of a space ship, set the amount here (positive or negative)
-	 * @param	offsetY		When the bullet is fired if you need to offset it on the y axis, for example to line it up with the "nose" of a space ship, set the amount here (positive or negative)
+	 * @param	parentRef		If this weapon belongs to a parent sprite, specify it here (bullets will fire from the sprites x/y vars as defined below).
+	 * @param	xVariable		The x axis variable of the parent to use when firing. Typically "x", but could be "screenX" or any public getter that exposes the x coordinate.
+	 * @param	yVariable		The y axis variable of the parent to use when firing. Typically "y", but could be "screenY" or any public getter that exposes the y coordinate.
+	 * @param	offsetX			When the bullet is fired if you need to offset it on the x axis, for example to line it up with the "nose" of a space ship, set the amount here (positive or negative)
+	 * @param	offsetY			When the bullet is fired if you need to offset it on the y axis, for example to line it up with the "nose" of a space ship, set the amount here (positive or negative)
+	 * @param	useDirection	When fired the bullet direction is based on parent sprites facing value (up/down/left/right)
 	 */
-	public function setParent(parentRef:Dynamic, xVariable:String, yVariable:String, ?offsetX:Int = 0, ?offsetY:Int = 0):Void
+	public function setParent(parentRef:Dynamic, xVariable:String, yVariable:String, ?offsetX:Int = 0, ?offsetY:Int = 0, ?useDirection:Bool = false):Void
 	{
 		if (parentRef != null)
 		{
@@ -422,6 +513,8 @@ class FlxWeapon
 		
 			positionOffset.x = offsetX;
 			positionOffset.y = offsetY;
+			
+			directionFromParent = useDirection;
 		}
 	}
 	
@@ -576,11 +669,20 @@ class FlxWeapon
 	 * @param	randomSpeed		The +- value applied to the speed when fired. For example 20 means the bullet can fire up to 20 px/sec slower or faster when fired.
 	 */
 	#if flash
-	public function setBulletRandomFactor(randomAngle:UInt, randomSpeed:UInt):Void
+	public function setBulletRandomFactor(?randomAngle:UInt = 0, ?randomSpeed:UInt = 0, ?randomPosition:FlxPoint = null, ?randomLifeSpan:UInt = 0):Void
 	#else
-	public function setBulletRandomFactor(randomAngle:UInt, randomSpeed:UInt):Void
+	public function setBulletRandomFactor(?randomAngle:Int = 0, ?randomSpeed:Int = 0, ?randomPosition:FlxPoint = null, ?randomLifeSpan:Int = 0):Void
 	#end
 	{
+		rndFactorAngle = randomAngle;
+		rndFactorSpeed = randomSpeed;
+		
+		if (randomPosition != null)
+		{
+			rndFactorPosition = randomPosition;
+		}
+		
+		rndFactorLifeSpan = randomLifeSpan;
 	}
 	
 	/**
@@ -591,6 +693,17 @@ class FlxWeapon
 	 */
 	public function setBulletLifeSpan(lifespan:Int):Void
 	{
+		bulletLifeSpan = lifespan;
+	}
+	
+	/**
+	 * The elasticity of the fired bullet controls how much it rebounds off collision surfaces.
+	 * 
+	 * @param	elasticity	The elasticity of the bullet between 0 and 1 (0 being no rebound, 1 being 100% force rebound). Set to zero to disable.
+	 */
+	public function setBulletElasticity(elasticity:Float):Void
+	{
+		bulletElasticity = elasticity;
 	}
 	
 	/**
@@ -609,7 +722,7 @@ class FlxWeapon
 		}
 		
 		var bullet:Bullet;
-		for (i in 0...group.members.length)
+		for (i in 0...(group.members.length))
 		{
 			bullet = cast(group.members[i], Bullet);
 			if (bullet.exists == false)
@@ -622,7 +735,41 @@ class FlxWeapon
 		return result;
 	}
 	
+	/**
+	 * Sets a pre-fire callback function and sound. These are played immediately before the bullet is fired.
+	 * 
+	 * @param	callback	The function to call
+	 * @param	sound		An FlxSound to play
+	 */
+	public function setPreFireCallback(?callbackFunc:Dynamic = null, ?sound:FlxSound = null):Void
+	{
+		onPreFireCallback = callbackFunc;
+		onPreFireSound = sound;
+	}
 	
+	/**
+	 * Sets a fire callback function and sound. These are played immediately as the bullet is fired.
+	 * 
+	 * @param	callback	The function to call
+	 * @param	sound		An FlxSound to play
+	 */
+	public function setFireCallback(?callbackFunc:Dynamic = null, ?sound:FlxSound = null):Void
+	{
+		onFireCallback = callbackFunc;
+		onFireSound = sound;
+	}
+	
+	/**
+	 * Sets a post-fire callback function and sound. These are played immediately after the bullet is fired.
+	 * 
+	 * @param	callback	The function to call
+	 * @param	sound		An FlxSound to play
+	 */
+	public function setPostFireCallback(?callbackFunc:Dynamic = null, ?sound:FlxSound = null):Void
+	{
+		onPostFireCallback = callbackFunc;
+		onPostFireSound = sound;
+	}
 	
 	// TODO
 	public function createBulletPattern(pattern:Array<Dynamic>):Void

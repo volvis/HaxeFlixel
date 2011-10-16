@@ -197,7 +197,7 @@ class FlxMath
 		cosTable = new Array();
 		sinTable = new Array();
 		
-		for (c in 0...length)
+		for (c in 0...(length))
 		{
 			cos -= sin * frq;
 			sin += cos * frq;
