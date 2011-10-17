@@ -137,7 +137,7 @@ public class FlxKongregate
 	 * @param	contentType		Type of content to listen for
 	 * @param	callback		Function to call when content load request has been made
 	 */
-	public static function addLoadListener(contentType:String, callbackFunc:Function):Void
+	public static function addLoadListener(contentType:String, callbackFunc:Dynamic):Void
 	{
 		api.sharedContent.addLoadListener(contentType, callbackFunc);
 	}
@@ -165,26 +165,29 @@ public class FlxKongregate
 		}
 	}
 	
+	public static var isGuest(getIsGuest, null):Bool;
 	/**
 	 * The isGuest function can be called to determine if the player is currently signed into Kongregate or not
 	 */
-	public static function get isGuest():Bool
+	public static function getIsGuest():Bool
 	{
 		return api.services.isGuest();
 	}
 	
+	public static var getUserName(getGetUserName, null):String;
 	/**
 	 * You can use the getUsername() function to retrieve the username of the current player. It will begin with Guest if the user is not signed in.
 	 */
-	public static function get getUserName():String
+	public static function getGetUserName():String
 	{
 		return api.services.getUsername();
 	}
 	
+	public static var getUserId(getGetUserId, null):Float;
 	/**
 	 * You can use the getUserId() function to retrieve the unique user id of the current player. It will return 0 if the user is not signed in.
 	 */
-	public static function get getUserId():Float
+	public static function getGetUserId():Float
 	{
 		try
 		{
@@ -198,10 +201,11 @@ public class FlxKongregate
 		return 0;
 	}
 	
+	public static var getGameAuthToken(getGetGameAuthToken, null):String;
 	/**
 	 * If you are using the Authentication API you can use the getGameAuthToken function to get the player's game authentication token.
 	 */
-	public static function get getGameAuthToken():String
+	public static function getGetGameAuthToken():String
 	{
 		return api.services.getGameAuthToken();
 	}

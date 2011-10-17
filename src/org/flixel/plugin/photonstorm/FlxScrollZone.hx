@@ -18,16 +18,20 @@ import flash.display.Sprite;
 import flash.geom.Matrix;
 import flash.geom.Point;
 import flash.geom.Rectangle;
-import flash.utils.TypedDictionary;
 import org.flixel.FlxBasic;
 import org.flixel.FlxSprite;
+import org.flixel.FlxU;
+
+//import flash.utils.TypedDictionary;
 
 /**
  * FlxScrollZone allows you to scroll the content of an FlxSprites bitmapData in any direction you like.
  */
 class FlxScrollZone extends FlxBasic
 {
-	private static var members:TypedDictionary<FlxSprite, FlxScrollZoneData> = new TypedDictionary(true);
+	//private static var members:TypedDictionary<FlxSprite, FlxScrollZoneData> = new TypedDictionary(true);
+	private static var members:FlxDictionary<FlxScrollZoneData> = new FlxDictionary<FlxScrollZoneData>();
+	
 	private static var zeroPoint:Point = new Point();
 	
 	public function new() 
@@ -146,7 +150,8 @@ class FlxScrollZone extends FlxBasic
 	{
 		for (obj in members)
 		{
-			members.delete(obj);
+			//members.delete(obj);
+			members.delete(obj.source);
 		}
 	}
 	
@@ -190,7 +195,8 @@ class FlxScrollZone extends FlxBasic
 		{
 			for (obj in members)
 			{
-				members.get(obj).scrolling = true;
+				//members.get(obj).scrolling = true;
+				obj.scrolling = true;
 			}
 		}
 	}
@@ -211,7 +217,8 @@ class FlxScrollZone extends FlxBasic
 		{
 			for (obj in members)
 			{
-				members.get(obj).scrolling = false;
+				//members.get(obj).scrolling = false;
+				obj.scrolling = false;
 			}
 		}
 	}
@@ -220,9 +227,11 @@ class FlxScrollZone extends FlxBasic
 	{
 		for (obj in members)
 		{
-			if ((members.get(obj).onlyScrollOnscreen == true && obj.onScreen()) && members.get(obj).scrolling == true && obj.exists)
+			//if ((members.get(obj).onlyScrollOnscreen == true && obj.onScreen()) && members.get(obj).scrolling == true && obj.exists)
+			if ((obj.onlyScrollOnscreen == true && obj.source.onScreen()) && obj.scrolling == true && obj.source.exists)
 			{
-				scroll(members.get(obj));
+				//scroll(members.get(obj));
+				scroll(obj);
 			}
 		}
 	}

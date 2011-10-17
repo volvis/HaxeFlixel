@@ -24,7 +24,8 @@ import org.flixel.FlxSprite;
  */
 class FlxScrollingText extends FlxBasic
 {
-	private static var members:TypedDictionary<FlxSprite, FlxScrollingTextData> = new TypedDictionary(true);
+	//private static var members:TypedDictionary<FlxSprite, FlxScrollingTextData> = new TypedDictionary(true);
+	private static var members:FlxDictionary<FlxScrollingTextData> = new FlxDictionary<FlxScrollingTextData>();
 	private static var zeroPoint:Point = new Point();
 
 	public function new() 
@@ -133,9 +134,11 @@ class FlxScrollingText extends FlxBasic
 	{
 		for (obj in members)
 		{
-			if (obj != null && (members.get(obj).onScreenScroller == true && obj.onScreen()) && members.get(obj).scrolling == true && obj.exists)
+			//if (obj != null && (members.get(obj).onScreenScroller == true && obj.onScreen()) && members.get(obj).scrolling == true && obj.exists)
+			if (obj != null && (obj.onScreenScroller == true && obj.sprite.onScreen()) && obj.scrolling == true && obj.sprite.exists)
 			{
-				scroll(members.get(obj));
+				//scroll(members.get(obj));
+				scroll(obj);
 			}
 		}
 	}
@@ -226,7 +229,8 @@ class FlxScrollingText extends FlxBasic
 	{
 		for (obj in members)
 		{
-			members.delete(obj);
+			//members.delete(obj);
+			members.delete(obj.sprite);
 		}
 	}
 	
@@ -246,7 +250,8 @@ class FlxScrollingText extends FlxBasic
 		{
 			for (obj in members)
 			{
-				members.get(obj).scrolling = true;
+				//members.get(obj).scrolling = true;
+				obj.scrolling = true;
 			}
 		}
 	}
@@ -267,7 +272,8 @@ class FlxScrollingText extends FlxBasic
 		{
 			for (obj in members)
 			{
-				members.get(obj).scrolling = false;
+				//members.get(obj).scrolling = false;
+				obj.scrolling = false;
 			}
 		}
 	}

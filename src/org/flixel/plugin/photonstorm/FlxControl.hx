@@ -25,7 +25,7 @@ class FlxControl extends FlxBasic
 	public static var player4:FlxControlHandler;
 	
 	//	Additional control handlers
-	private static var members:Array<FlxControlHandler> = new Array();
+	private static var members:FlxDictionary<FlxControlHandler> = new FlxDictionary<FlxControlHandler>();
 	
 	public function new() 
 	{
@@ -52,31 +52,31 @@ class FlxControl extends FlxBasic
 		if (player == 1)
 		{
 			player1 = new FlxControlHandler(source, movementType, stoppingType, updateFacing, enableArrowKeys);
-			members.push(player1);
+			members.set(player1, player1);
 			result = player1;
 		}
 		else if (player == 2)
 		{
 			player2 = new FlxControlHandler(source, movementType, stoppingType, updateFacing, enableArrowKeys);
-			members.push(player2);
+			members.set(player2, player2);
 			result = player2;
 		}
 		else if (player == 3)
 		{
 			player3 = new FlxControlHandler(source, movementType, stoppingType, updateFacing, enableArrowKeys);
-			members.push(player3);
+			members.set(player3, player3);
 			result = player3;
 		}
 		else if (player == 4)
 		{
 			player4 = new FlxControlHandler(source, movementType, stoppingType, updateFacing, enableArrowKeys);
-			members.push(player4);
+			members.set(player4, player4);
 			result = player4;
 		}
 		else
 		{
 			var newControlHandler:FlxControlHandler = new FlxControlHandler(source, movementType, stoppingType, updateFacing, enableArrowKeys);
-			members.push(newControlHandler);
+			members.set(newControlHandler, newControlHandler);
 			result = newControlHandler;
 		}
 		
@@ -91,9 +91,11 @@ class FlxControl extends FlxBasic
 	 */
 	public static function remove(source:FlxControlHandler):Bool
 	{
-		if (members != null)
+		if (members.get(source) != null)
 		{
-			return members.remove(source);
+			members.delete(source);
+			
+			return true;
 		}
 		
 		return false;
@@ -105,9 +107,9 @@ class FlxControl extends FlxBasic
 	 */
 	public static function clear():Void
 	{
-		if (members != null)
+		for (handler in members)
 		{
-			members = [];
+			members.delete(handler);
 		}
 	}
 	
@@ -119,22 +121,15 @@ class FlxControl extends FlxBasic
 	 */
 	public static function start(?source:FlxControlHandler = null):Void
 	{
-		if (members != null)
+		if (source != null)
 		{
-			if (source != null)
+			members.get(source).enabled = true;
+		}
+		else
+		{
+			for (handler in members)
 			{
-				var index:Int = FlxU.ArrayIndexOf(members, source);
-				if (index > -1)
-				{
-					members[index].enabled = true;
-				}
-			}
-			else
-			{
-				for (handler in members)
-				{
-					handler.enabled = true;
-				}
+				handler.enabled = true;
 			}
 		}
 	}
@@ -147,22 +142,15 @@ class FlxControl extends FlxBasic
 	 */
 	public static function stop(?source:FlxControlHandler = null):Void
 	{
-		if (members != null)
+		if (source != null)
 		{
-			if (source != null)
+			members.get(source).enabled = false;
+		}
+		else
+		{
+			for (handler in members)
 			{
-				var index:Int = FlxU.ArrayIndexOf(members, source);
-				if (index > -1)
-				{
-					members[index].enabled = false;
-				}
-			}
-			else
-			{
-				for (handler in members)
-				{
-					handler.enabled = false;
-				}
+				handler.enabled = false;
 			}
 		}
 	}
@@ -172,14 +160,11 @@ class FlxControl extends FlxBasic
 	 */
 	override public function draw():Void
 	{
-		if (members != null)
+		for (handler in members)
 		{
-			for (handler in members)
+			if (handler.enabled == true)
 			{
-				if (handler.enabled)
-				{
-					handler.update();
-				}
+				handler.update();
 			}
 		}
 	}

@@ -17,9 +17,10 @@
 
 package org.flixel.plugin.photonstorm;
 
-import flash.utils.TypedDictionary;
+//import flash.utils.TypedDictionary;
 import org.flixel.FlxBasic;
 import org.flixel.FlxG;
+import org.flixel.FlxU;
 import org.flixel.plugin.photonstorm.fx.BaseFX;
 import org.flixel.plugin.photonstorm.fx.BlurFX;
 import org.flixel.plugin.photonstorm.fx.CenterSlideFX;
@@ -37,7 +38,8 @@ import org.flixel.plugin.photonstorm.fx.WowCopperFX;
  */
 class FlxSpecialFX extends FlxBasic
 {
-	private static var members:TypedDictionary<BaseFX, BaseFX> = new TypedDictionary(true);
+	//private static var members:TypedDictionary<BaseFX, BaseFX> = new TypedDictionary(true);
+	private static var members:FlxDictionary<BaseFX> = new FlxDictionary<BaseFX>();
 	
 	public function new() 
 	{

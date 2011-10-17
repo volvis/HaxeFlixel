@@ -14,7 +14,6 @@ package org.flixel.plugin.photonstorm.fx;
 import flash.display.BitmapData;
 import flash.geom.Point;
 import flash.geom.Rectangle;
-import flash.utils.Dictionary;
 import flash.filters.BlurFilter;
 import org.flixel.FlxSprite;
 
