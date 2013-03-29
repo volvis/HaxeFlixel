@@ -1108,6 +1108,14 @@ class FlxSprite extends FlxObject
 	}
 	
 	/**
+	 * Tells whether sprite has an animation with the specific name
+	 */
+	public function hasAnimation(name:String):Bool
+	{
+		return _animations.exists(name);
+	}
+	
+	/**
 	 * Tell the sprite to change to a random frame of animation
 	 * Useful for instantiating particles or other weird things.
 	 */
