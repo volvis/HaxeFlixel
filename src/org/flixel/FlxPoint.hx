@@ -97,7 +97,7 @@ class FlxPoint
 	 */
 	inline public function toString():String
 	{
-		return FlxU.getClassName(this, true);
+		return Std.format("${FlxU.getClassName(this, true)}(X:$x, Y:$y)");
 	}
 	
 }
