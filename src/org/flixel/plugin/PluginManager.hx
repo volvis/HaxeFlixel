@@ -101,8 +101,7 @@ class PluginWrapper implements IPluginUpdate, implements IPluginDraw
 	
 	public function update():Void
 	{
-		copyExistAndAlive();
-		if (exists && alive)
+		if (plugin.exists && plugin.alive)
 		{
 			plugin.update();
 		}
@@ -110,17 +109,10 @@ class PluginWrapper implements IPluginUpdate, implements IPluginDraw
 	
 	public function draw():Void
 	{
-		copyExistAndAlive();
-		if (exists && alive)
+		if (plugin.exists && plugin.alive)
 		{
 			plugin.draw();
 		}
-	}
-	
-	private function copyExistAndAlive():Void
-	{
-		exists = plugin.exists;
-		alive = plugin.alive;
 	}
 }
 
