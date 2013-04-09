@@ -22,8 +22,6 @@ class PluginManager
 	
 	public function add(Plugin:FlxObject):FlxObject
 	{
-		var legacyPlugin:Bool = true;
-		
 		if (Std.is(Plugin, IPlugin))
 		{
 			if (Std.is(Plugin, IPluginUpdate))
