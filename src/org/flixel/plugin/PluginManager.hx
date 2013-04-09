@@ -53,15 +53,21 @@ class PluginManager
 	{
 		for (Plugin in preUpdatePlugins)
 		{
-			Plugin.update();
+			if (Plugin.exists && Plugin.alive)
+			{				
+				Plugin.update();
+			}
 		}
 	}
 	
 	public function postUpdate():Void
 	{
 		for (Plugin in postUpdatePlugins)
-		{	
-			Plugin.postUpdate();
+		{
+			if (Plugin.exists && Plugin.alive)
+			{	
+				Plugin.postUpdate();
+			}
 		}
 	}
 	
@@ -69,7 +75,10 @@ class PluginManager
 	{
 		for (Plugin in drawPlugins)
 		{
-			Plugin.draw();
+			if (Plugin.exists && Plugin.alive)
+			{	
+				Plugin.draw();
+			}
 		}
 	}
 	
@@ -82,6 +91,9 @@ class PluginWrapper implements IPluginUpdate, implements IPluginDraw
 {
 	private var plugin:FlxObject;
 	
+	public var exists:Bool = true;
+	public var alive:Bool = true;
+	
 	public function new(PluginObject:FlxObject)
 	{
 		plugin = PluginObject;
@@ -89,12 +101,26 @@ class PluginWrapper implements IPluginUpdate, implements IPluginDraw
 	
 	public function update():Void
 	{
-		plugin.update();
+		copyExistAndAlive();
+		if (exists && alive)
+		{
+			plugin.update();
+		}
 	}
 	
 	public function draw():Void
 	{
-		plugin.draw();
+		copyExistAndAlive();
+		if (exists && alive)
+		{
+			plugin.draw();
+		}
+	}
+	
+	private function copyExistAndAlive():Void
+	{
+		exists = plugin.exists;
+		alive = plugin.alive;
 	}
 }
 
@@ -116,6 +142,6 @@ interface IPluginDraw implements IPlugin
 
 interface IPlugin
 {
-	//var exists:Bool;
-	//var alive:Bool;
+	var exists:Bool;
+	var alive:Bool;
 }
