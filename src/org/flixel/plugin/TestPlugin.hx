@@ -1,10 +1,10 @@
 package org.flixel.plugin;
 
 import org.flixel.FlxObject;
-import org.flixel.plugin.PluginManager;
-import org.flixel.plugin.PluginManager.IPluginUpdate;
-import org.flixel.plugin.PluginManager.IPluginPostUpdate;
-import org.flixel.plugin.PluginManager.IPluginDraw;
+import org.flixel.plugin.manager.PluginManager;
+import org.flixel.plugin.manager.IPluginUpdate;
+import org.flixel.plugin.manager.IPluginPostUpdate;
+import org.flixel.plugin.manager.IPluginDraw;
 
 /**
  * ...
